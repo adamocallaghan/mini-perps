@@ -2,6 +2,7 @@
 pragma solidity ^0.8.21;
 
 import {IERC20} from "./interfaces/IERC20.sol";
+import {AggregatorV3Interface} from "./interfaces/AggregatorV3Interface.sol";
 
 contract PerpsMarket {
     // ========== ERRORS ==========
@@ -43,6 +44,8 @@ contract PerpsMarket {
     uint256 public vQuoteReserves = 1_000_000 ether;        // virtual quote asset reserves in vAMM
 
     uint256 public oraclePrice;                             // manually set oracle price
+    AggregatorV3Interface public dataFeed;                  // chainlink data feed to get oracle price
+    
     int256 public cumulativeFunding;                        // global cumulative funding rate
     uint256 public lastFundingTime;                         // timestamp of last funding update
 
@@ -50,10 +53,13 @@ contract PerpsMarket {
     mapping(address => uint256) public lpShares;            // LP address => share amount
 
     // ========== CONSTRUCTOR ==========
-    constructor(address _usdc) {
+    constructor(address _usdc, address _dataFeed) {
         usdc = IERC20(_usdc);
         owner = msg.sender;
         lastFundingTime = block.timestamp;
+        dataFeed = AggregatorV3Interface(
+            _dataFeed
+        );
     }
 
     modifier onlyOwner() {
